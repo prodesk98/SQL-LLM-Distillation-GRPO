@@ -1,0 +1,27 @@
+model_name_or_path: "gpt-4.1-nano"
+base_url: "https://api.openai.com/v1"
+openai_api_key: "your_openai_api_key"
+template: "You are an expert in writing optimized SQL queries, with strong logical reasoning skills.
+
+Follow these guidelines:
+- Use <think></think> tags to explain your reasoning process step by step.
+- Use <sql></sql> tags to present the final SQL query.
+
+Instruction:
+{{ instruction }}
+
+Context:
+{{ context }}
+
+Expected Output:
+<think>
+1. Interpret the instruction and context to determine the requirements.
+2. Identify relevant tables, columns, filters, and relationships.
+3. Formulate a clear and efficient SQL query that meets the requirements.
+4. Optimize the query for performance and accuracy.
+5. Briefly explain the logic behind the query.
+6. Ensure the output matches both instruction and context.
+</think>
+<sql>
+Final SQL query goes here
+</sql>"

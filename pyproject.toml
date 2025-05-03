@@ -8,4 +8,8 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
     "distilabel[ollama,openai]>=1.5.3",
     "python-dotenv>=1.1.0",
+    "pyyaml>=6.0.2",
+    "torch>=2.7.0",
+    "transformers>=4.51.3",
+    "trl>=0.17.0",
 ]
