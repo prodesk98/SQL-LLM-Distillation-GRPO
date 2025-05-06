@@ -1,1 +1,1 @@
-from .hf_config import get_tokenizer, get_model
+from .parser import extract_sql, extract_think

@@ -1,7 +1,10 @@
 from pathlib import Path
 from typing import Any
-
+from os import environ
+from dotenv import load_dotenv
 import yaml
+
+load_dotenv()
 
 
 def load_config(file_path: str) -> dict[str, Any]:
@@ -15,15 +18,12 @@ def load_config(file_path: str) -> dict[str, Any]:
         file.close()
     return c
 
-config = load_config("%s/config.yaml" % Path(__file__).parent.parent)
+config: dict[str, Any] = load_config("%s/config.yaml" % Path(__file__).parent.parent)
+config.update(environ.items())
 
-BASE_URL = config.get("base_url")
-if BASE_URL is None:
-    raise ValueError("base_url is not set in the configuration file.")
-MODEL_NAME = config.get("model_name_or_path")
-if MODEL_NAME is None:
-    raise ValueError("model_name_or_path is not set in the configuration file.")
-API_KEY = config.get("openai_api_key")
-if API_KEY is None:
-    raise ValueError("openai_api_key is not set in the configuration file.")
-TEMPLATE = config.get("template")
+BASE_URL: str = config.get("base_url", "https://api.openai.com/v1")
+API_KEY: str | None = config.get("OPENAI_API_KEY")
+HF_TOKEN: str | None = config.get("HF_TOKEN")
+MAX_SEQ_LEN: int = config.get("max_seq_len", 1024)
+MAX_PROMPT_LENGTH: int = config.get("max_prompt_length", 256)
+TEMPERATURE: float = config.get("temperature", .6)

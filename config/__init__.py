@@ -1,6 +1,8 @@
 from .environment import (
     BASE_URL,
-    MODEL_NAME,
     API_KEY,
-    TEMPLATE,
+    MAX_SEQ_LEN,
+    MAX_PROMPT_LENGTH,
+    TEMPERATURE,
+    HF_TOKEN,
 )
