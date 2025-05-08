@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, Literal
 
-from distilabel.models import OpenAILLM
-from distilabel.pipeline import RayPipeline, Pipeline
+from distilabel.models import AsyncLLM, LLM
+from distilabel.pipeline import Pipeline
 from distilabel.steps import StepResources
 from distilabel.steps.tasks import TextGeneration
 
@@ -20,25 +20,57 @@ def build_distilabel_pipeline(
     mappings: Optional[dict[str, str]] = None,
     template: str = DISTILLATION_SYSTEM_PROMPT_TEMPLATE,
     num_generations: int = 1,
-    input_batch_size: int = 64,
+    input_batch_size: int = 8,
     client_replicas: int = 1,
-    timeout: int = 900,
+    timeout: int = 128,
     retries: int = 3,
-) -> RayPipeline:
+    provider: Literal["OpenAI", "vLLM", "Groq"] = "OpenAI",
+) -> Pipeline:
     generation_kwargs = {"max_new_tokens": max_new_tokens, "temperature": temperature}
     if top_p is not None:
         generation_kwargs["top_p"] = top_p
 
-    with Pipeline().ray() as pipeline:
-        TextGeneration(
-            llm=OpenAILLM(
+    __llm: Optional[AsyncLLM | LLM] = None
+    match provider:
+        case "OpenAI":
+            from distilabel.models import OpenAILLM
+
+            __llm = OpenAILLM(
                 base_url=base_url,
                 api_key=api_key,
                 model=model,
                 timeout=timeout,
                 max_retries=retries,
                 generation_kwargs=generation_kwargs,
-            ),
+            )
+        case "vLLM":
+            from distilabel.models import vLLM
+
+            __llm = vLLM(
+                model=model,
+                tokenizer=model,
+                extra_kwargs={
+                    "tensor_parallel_size": 1,
+                    "max_model_len": max_new_tokens,
+                },
+                generation_kwargs=generation_kwargs,
+            )
+        case "Groq":
+            from distilabel.models import GroqLLM
+
+            __llm = GroqLLM(
+                model=model,
+                api_key=api_key,
+                max_retries=retries,
+                timeout=timeout,
+                generation_kwargs=generation_kwargs,
+            )
+        case _:
+            raise ValueError(f"Unsupported provider: {provider}")
+
+    with Pipeline() as pipeline:
+        TextGeneration(
+            llm=__llm,
             template=template,
             columns=columns,
             input_mappings=mappings,

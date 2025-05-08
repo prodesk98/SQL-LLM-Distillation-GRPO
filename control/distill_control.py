@@ -1,12 +1,13 @@
-from typing import Optional
+from typing import Optional, Literal
 from config import HF_TOKEN
 
 from distilabel.distiset import Distiset
-from distilabel.pipeline import RayPipeline
+from distilabel.pipeline import Pipeline
 
 from distill import build_distilabel_pipeline
 from datasets import load_dataset, DatasetDict, Dataset
 from logging_ import logger
+from utils import validate_sql_query
 
 
 class DistillControl:
@@ -21,24 +22,44 @@ class DistillControl:
         limit: int = 5_000,
         publish: bool = False,
         private_repo: bool = True,
+        batch_size: int = 8,
+        retries: int = 3,
+        provider: Literal[
+            "OpenAI", "vLLM", "Groq"
+        ] = "OpenAI",
+        validate: bool = False,
     ):
         self.model = model
         self.dataset_repo_id = dataset_repo_id
         self.publish_repo_id = publish_repo_id
+        self.provider = provider
+        self.validate = validate
         self.publish = publish
         self.private_repo = private_repo
         self.answer_column = answer_column
         self.mappings = mappings
-        self._distilabel_pipeline: Optional[RayPipeline] = None
+        self._distilabel_pipeline: Optional[Pipeline] = None
         self._dataset: Optional[DatasetDict | Dataset] = None
         self._distiset: Optional[Distiset] = None
-        self._initialize()                  # Initialize the distillation pipeline
-        self._load_dataset(split, limit)  # Load the dataset
+        self._initialize(batch_size, retries)       # Initialize the distillation pipeline
+        self._load_dataset(split, limit)            # Load the dataset
+
+    def _validate_sql(self, sample: dict) -> dict:
+        """
+        Validate the SQL query in the sample.
+        :param sample:
+        :return:
+        """
+        sql_query = sample[self.answer_column]
+        context = sample["sql_context"]
+        is_valid, message = validate_sql_query(sql_query, context)
+        sample["validation"] = "valid" if is_valid else message
+        return sample
 
     def _load_dataset(self, split: str = "train", limit: int = 5_000) -> DatasetDict | Dataset:
         if self.dataset_repo_id is None:
             raise ValueError("dataset_repo_id must be provided")
-        self._dataset = load_dataset(self.dataset_repo_id, split=split, token=HF_TOKEN).select(range(limit))
+        self._dataset = load_dataset(self.dataset_repo_id, split=f"{split}[:{limit}]", token=HF_TOKEN)
         values_ = self.mappings.values()
         self._dataset = self._dataset.remove_columns(
             [
@@ -46,24 +67,36 @@ class DistillControl:
                 if col not in values_ and col != self.answer_column
             ]
         )
+        if self.validate:
+            self._dataset = self._dataset.map(
+                self._validate_sql,
+                batched=False,
+            )
         return self._dataset
 
-    def _initialize(self) -> None:
+    def _initialize(self, batch_size: int, retries: int) -> None:
         if self.mappings is None:
             self.mappings = {
                 "instruction": "sql_prompt",
                 "context": "sql_context",
+                "objective": "sql",
                 "explanation": "sql_explanation",
             }
         self._distilabel_pipeline = build_distilabel_pipeline(
             self.model,
             columns=[k for k in self.mappings.keys()],
             mappings=self.mappings,
+            provider=self.provider,
+            input_batch_size=batch_size,
+            retries=retries,
         )
 
     def run(self) -> None:
-        self._distiset = self._distilabel_pipeline.run(dataset=self._dataset, use_cache=False)
-        logger.info("Distillation completed successfully.")
+        try:
+            self._distiset = self._distilabel_pipeline.run(dataset=self._dataset, use_cache=False)
+            logger.info("Distillation completed successfully.")
+        except Exception as e:
+            logger.error(f"Error during distillation: {e}")
 
         if self.publish:
             if self.publish_repo_id is None:

@@ -71,6 +71,30 @@ parser_distill.add_argument(
     default=100,
     help="Limit the number of samples to distill. Default is 100.",
 )
+parser_distill.add_argument(
+    "--provider",
+    type=str,
+    default="OpenAI",
+    choices=["OpenAI", "vLLM", "Groq"],
+    help="Provider for the distillation process. Default is 'OpenAI'.",
+)
+parser_distill.add_argument(
+    "--validate",
+    action="store_true",
+    help="Validate the SQL query. Default is False.",
+)
+parser_distill.add_argument(
+    "--batch-size",
+    type=int,
+    default=8,
+    help="Batch size for the distillation process. Default is 8.",
+)
+parser_distill.add_argument(
+    "--retries",
+    type=int,
+    default=3,
+    help="Number of retries for the distillation process. Default is 3.",
+)
 #
 
 args = parser.parse_args()
@@ -84,7 +108,7 @@ elif args.command == "distill":
         raise ValueError("publish_repo_id must be provided when publish is True")
 
     logger.info(
-        f"Distilling model: {args.model} with dataset: {args.dataset_repo_id} and limit: {args.limit} samples."
+        f"Distilling model: [{args.provider}] {args.model} with dataset: {args.dataset_repo_id} with {args.limit} samples."
     )
 
     distill = DistillControl(
@@ -93,6 +117,9 @@ elif args.command == "distill":
         publish_repo_id=args.publish_repo_id,
         publish=args.publish,
         limit=args.limit,
+        provider=args.provider,
+        validate=args.validate,
+        private_repo=args.private_repo,
     )
     distill.run()
 else:

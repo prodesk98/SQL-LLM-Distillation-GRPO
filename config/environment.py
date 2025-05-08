@@ -22,7 +22,7 @@ config: dict[str, Any] = load_config("%s/config.yaml" % Path(__file__).parent.pa
 config.update(environ.items())
 
 BASE_URL: str = config.get("base_url", "https://api.openai.com/v1")
-API_KEY: str | None = config.get("OPENAI_API_KEY")
+API_KEY: str | None = config.get("API_KEY")
 HF_TOKEN: str | None = config.get("HF_TOKEN")
 MAX_SEQ_LEN: int = config.get("max_seq_len", 1024)
 MAX_PROMPT_LENGTH: int = config.get("max_prompt_length", 256)

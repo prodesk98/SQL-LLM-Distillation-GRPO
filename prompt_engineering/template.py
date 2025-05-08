@@ -34,16 +34,20 @@ Guidelines:
 - Explain **why** you select tables, columns, joins, filters, and aggregations.
 - If assumptions are needed (e.g., default sort order), make them explicit.
 - The SQL query should be optimized and readable.
+- The objective provides a valid SQL query for the given statement; use it as a reference to construct the corresponding reasoning.
 
 ---
 
 ### Instruction:
 {{ instruction }}
 
-### Schema or Context:
+### Context:
 {{ context }}
 
-### Additional Notes:
+### Objective:
+{{ objective }}
+
+### Explanation:
 {{ explanation }}
 
 ---
