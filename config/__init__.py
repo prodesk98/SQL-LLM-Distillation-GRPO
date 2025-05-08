@@ -5,4 +5,6 @@ from .environment import (
     MAX_PROMPT_LENGTH,
     TEMPERATURE,
     HF_TOKEN,
+    TENSOR_PARALLEL_SIZE,
+    CLIENT_REPLICAS,
 )

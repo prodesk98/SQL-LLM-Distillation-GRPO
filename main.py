@@ -84,6 +84,11 @@ parser_distill.add_argument(
     help="Validate the SQL query. Default is False.",
 )
 parser_distill.add_argument(
+    "--remove-no-valid",
+    action="store_true",
+    help="Remove invalid SQL queries from the dataset. Default is False.",
+)
+parser_distill.add_argument(
     "--batch-size",
     type=int,
     default=8,
@@ -94,6 +99,11 @@ parser_distill.add_argument(
     type=int,
     default=3,
     help="Number of retries for the distillation process. Default is 3.",
+)
+parser_distill.add_argument(
+    "--use-ray",
+    action="store_true",
+    help="Use Ray for distributed processing. Default is False.",
 )
 #
 
@@ -120,6 +130,7 @@ elif args.command == "distill":
         provider=args.provider,
         validate=args.validate,
         private_repo=args.private_repo,
+        use_ray=args.use_ray,
     )
     distill.run()
 else:

@@ -1,11 +1,14 @@
 from typing import Optional, Literal
 
 from distilabel.models import AsyncLLM, LLM
-from distilabel.pipeline import Pipeline
+from distilabel.pipeline import Pipeline, RayPipeline
 from distilabel.steps import StepResources
 from distilabel.steps.tasks import TextGeneration
 
-from config import BASE_URL, API_KEY, MAX_PROMPT_LENGTH, TEMPERATURE
+from config import (
+    BASE_URL, API_KEY, MAX_PROMPT_LENGTH,
+    TEMPERATURE, TENSOR_PARALLEL_SIZE, CLIENT_REPLICAS
+)
 from prompt_engineering import DISTILLATION_SYSTEM_PROMPT_TEMPLATE
 
 
@@ -21,11 +24,12 @@ def build_distilabel_pipeline(
     template: str = DISTILLATION_SYSTEM_PROMPT_TEMPLATE,
     num_generations: int = 1,
     input_batch_size: int = 8,
-    client_replicas: int = 1,
+    client_replicas: int = CLIENT_REPLICAS,
     timeout: int = 128,
     retries: int = 3,
     provider: Literal["OpenAI", "vLLM", "Groq"] = "OpenAI",
-) -> Pipeline:
+    use_ray: bool = False,
+) -> Pipeline | RayPipeline:
     generation_kwargs = {"max_new_tokens": max_new_tokens, "temperature": temperature}
     if top_p is not None:
         generation_kwargs["top_p"] = top_p
@@ -50,7 +54,7 @@ def build_distilabel_pipeline(
                 model=model,
                 tokenizer=model,
                 extra_kwargs={
-                    "tensor_parallel_size": 1,
+                    "tensor_parallel_size": TENSOR_PARALLEL_SIZE,
                     "max_model_len": max_new_tokens,
                 },
                 generation_kwargs=generation_kwargs,
@@ -79,5 +83,7 @@ def build_distilabel_pipeline(
             group_generations=True,
             resources=StepResources(replicas=client_replicas),
         )
-    return pipeline
 
+    if use_ray:
+        return pipeline.ray()
+    return pipeline

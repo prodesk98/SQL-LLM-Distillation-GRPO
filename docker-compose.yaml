@@ -1,0 +1,51 @@
+
+
+services:
+  distill:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    ports:
+      - "8265:8265"
+    command: >
+      uv run main.py distill
+      --limit 100
+      --publish
+      --dataset-repo-id gretelai/synthetic_text_to_sql
+      --publish-repo-id proton98/sql-distill-DeepSeek-R1-Distill-Qwen-1.5B-reasoning
+      --provider vLLM
+      --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+      --validate
+      --private-repo
+      --batch-size 8
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    command: >
+      tail -f /dev/null

@@ -28,6 +28,7 @@ class DistillControl:
             "OpenAI", "vLLM", "Groq"
         ] = "OpenAI",
         validate: bool = False,
+        use_ray: bool = False,
     ):
         self.model = model
         self.dataset_repo_id = dataset_repo_id
@@ -41,8 +42,8 @@ class DistillControl:
         self._distilabel_pipeline: Optional[Pipeline] = None
         self._dataset: Optional[DatasetDict | Dataset] = None
         self._distiset: Optional[Distiset] = None
-        self._initialize(batch_size, retries)       # Initialize the distillation pipeline
-        self._load_dataset(split, limit)            # Load the dataset
+        self._initialize(batch_size, retries, use_ray)  # Initialize the distillation pipeline
+        self._load_dataset(split, limit)                # Load the dataset
 
     def _validate_sql(self, sample: dict) -> dict:
         """
@@ -74,7 +75,7 @@ class DistillControl:
             )
         return self._dataset
 
-    def _initialize(self, batch_size: int, retries: int) -> None:
+    def _initialize(self, batch_size: int, retries: int, use_ray: bool = False) -> None:
         if self.mappings is None:
             self.mappings = {
                 "instruction": "sql_prompt",
@@ -89,6 +90,7 @@ class DistillControl:
             provider=self.provider,
             input_batch_size=batch_size,
             retries=retries,
+            use_ray=use_ray,
         )
 
     def run(self) -> None:
