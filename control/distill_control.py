@@ -25,7 +25,7 @@ class DistillControl:
         batch_size: int = 8,
         retries: int = 3,
         provider: Literal[
-            "OpenAI", "vLLM", "Groq"
+            "OpenAI", "vLLM", "Groq", "HuggingFace",
         ] = "OpenAI",
         validate: bool = False,
         use_ray: bool = False,

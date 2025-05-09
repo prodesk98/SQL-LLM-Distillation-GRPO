@@ -1,5 +1,4 @@
 import argparse
-from control import DistillControl
 
 from logging_ import setup_logger
 setup_logger()
@@ -7,9 +6,13 @@ from loguru import logger
 
 
 parser = argparse.ArgumentParser(
-    prog="SQL-RL-Distillation-LLM",
-    description="A framework for SQL RL Distillation with LLMs.",
-    epilog="Developed by Protons.",
+    prog="uv run main.py",
+    description=(
+        "A modular framework for SQL data distillation with reasoning using Large Language Models (LLMs). "
+        "Supports multiple backends (OpenAI, vLLM, Groq, Hugging Face) and integrates Chain of Thought prompting "
+        "with online reinforcement learning (GRPO) for high-quality SQL generation."
+    ),
+    epilog="Developed by Protons · GitHub: https://github.com/prodesk98",
 )
 
 subparsers = parser.add_subparsers(dest="command", required=True, help="Subcommands like 'train', 'distill'")
@@ -41,8 +44,8 @@ parser_distill = subparsers.add_parser(
 parser_distill.add_argument(
     "--model",
     type=str,
-    default="gpt-4.1-nano",
-    help="Model name for distillation. Default is 'gpt-4.1-nano'.",
+    default=None,
+    help="Model name for distillation. Default is 'None'.",
 )
 parser_distill.add_argument(
     "--publish",
@@ -75,7 +78,7 @@ parser_distill.add_argument(
     "--provider",
     type=str,
     default="OpenAI",
-    choices=["OpenAI", "vLLM", "Groq"],
+    choices=["OpenAI", "vLLM", "Groq", "HuggingFace"],
     help="Provider for the distillation process. Default is 'OpenAI'.",
 )
 parser_distill.add_argument(
@@ -114,8 +117,11 @@ if args.command == "train":
     print(f"Training model: {args.model}")
     # Add your training logic here
 elif args.command == "distill":
+    from control import DistillControl
     if args.publish and args.publish_repo_id is None:
         raise ValueError("publish_repo_id must be provided when publish is True")
+    if args.model is None and args.provider != "HuggingFace":
+        raise ValueError("model must be provided when provider is not HuggingFace")
 
     logger.info(
         f"Distilling model: [{args.provider}] {args.model} with dataset: {args.dataset_repo_id} with {args.limit} samples."

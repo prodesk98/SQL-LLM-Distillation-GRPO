@@ -1,5 +1,5 @@
-base_url: "https://api.openai.com/v1"
+base_url: "https://ekagopsfr9iwoilq.us-east-1.aws.endpoints.huggingface.cloud"
 max_seq_length: 1024
-max_prompt_length: 8192
+max_prompt_length: 512
 temperature: 0.6
 tensor_parallel_size: 1

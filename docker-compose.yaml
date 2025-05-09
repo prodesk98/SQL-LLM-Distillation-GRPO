@@ -22,12 +22,12 @@ services:
       - "8265:8265"
     command: >
       uv run main.py distill
-      --limit 10
+      --limit 100
       --publish
       --dataset-repo-id gretelai/synthetic_text_to_sql
-      --publish-repo-id proton98/sql-distill-Qwen3-0.6B-reasoning
-      --provider vLLM
-      --model Qwen/Qwen3-0.6B
+      --publish-repo-id proton98/sql-distill-Llama-3.2-1B-reasoning
+      --provider HuggingFace
+      --model meta-llama/Llama-3.2-1B
       --validate
       --private-repo
       --batch-size 8

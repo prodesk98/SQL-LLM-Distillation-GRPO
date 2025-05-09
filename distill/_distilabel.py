@@ -27,7 +27,7 @@ def build_distilabel_pipeline(
     client_replicas: int = CLIENT_REPLICAS,
     timeout: int = 128,
     retries: int = 3,
-    provider: Literal["OpenAI", "vLLM", "Groq"] = "OpenAI",
+    provider: Literal["OpenAI", "vLLM", "Groq", "HuggingFace"] = "OpenAI",
     use_ray: bool = False,
 ) -> Pipeline | RayPipeline:
     generation_kwargs = {"max_new_tokens": max_new_tokens, "temperature": temperature}
@@ -57,6 +57,14 @@ def build_distilabel_pipeline(
                     "tensor_parallel_size": TENSOR_PARALLEL_SIZE,
                     "max_model_len": max_new_tokens,
                 },
+                generation_kwargs=generation_kwargs,
+            )
+        case "HuggingFace":
+            from distilabel.models.llms.huggingface import InferenceEndpointsLLM
+
+            __llm = InferenceEndpointsLLM(
+                base_url=base_url,
+                api_key=api_key,
                 generation_kwargs=generation_kwargs,
             )
         case "Groq":
