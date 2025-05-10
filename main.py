@@ -137,6 +137,7 @@ elif args.command == "distill":
         validate=args.validate,
         private_repo=args.private_repo,
         use_ray=args.use_ray,
+        batch_size=args.batch_size,
     )
     distill.run()
 else:
