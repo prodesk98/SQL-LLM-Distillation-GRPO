@@ -29,10 +29,16 @@ parser_train.add_argument(
     help="Model name for training. Default is 'unsloth/gemma-3-1b-it'.",
 )
 parser_train.add_argument(
-    "--data-repo-id",
+    "--num-train-epochs",
+    type=int,
+    default=-1,
+    help="Number of training epochs. Default is -1.",
+)
+parser_train.add_argument(
+    "--dataset-repo-id",
     type=str,
-    required=True,
-    help="Path to the training data file.",
+    default="gretelai/synthetic_text_to_sql",
+    help="Path to the training dataset. Default is 'gretelai/synthetic_text_to_sql'.",
 )
 #
 
@@ -55,12 +61,12 @@ parser_distill.add_argument(
 parser_distill.add_argument(
     "--publish-repo-id",
     type=str,
-    help="Path to the Hugging Face Hub repository for publishing.",
+    help="Path to the published repository. This is a required argument if --publish is set.",
 )
 parser_distill.add_argument(
     "--private-repo",
     action="store_true",
-    help="Make the published repository private. Default is True.",
+    help="Create a private repository on Hugging Face Hub. Default is False.",
 )
 parser_distill.add_argument(
     "--dataset-repo-id",
@@ -113,11 +119,23 @@ parser_distill.add_argument(
 args = parser.parse_args()
 
 if args.command == "train":
-    # Call the training function with the provided arguments
-    print(f"Training model: {args.model}")
-    # Add your training logic here
+    if args.model is None and args.provider != "HuggingFace":
+        raise ValueError("model must be provided when provider is not HuggingFace")
+    if args.dataset_repo_id is None:
+        raise ValueError("dataset_repo_id must be provided")
+
+    logger.info(
+        f"Training model: {args.model} with dataset: {args.dataset_repo_id}"
+    )
+
+    from control.trainer_control import TrainerControl
+    trainer = TrainerControl(
+        model=args.model,
+        num_train_epochs=args.num_train_epochs,
+        dataset_repo_id=args.dataset_repo_id,
+    )
+    trainer.train()
 elif args.command == "distill":
-    from control import DistillControl
     if args.publish and args.publish_repo_id is None:
         raise ValueError("publish_repo_id must be provided when publish is True")
     if args.model is None and args.provider != "HuggingFace":
@@ -127,6 +145,7 @@ elif args.command == "distill":
         f"Distilling model: [{args.provider}] {args.model} with dataset: {args.dataset_repo_id} with {args.limit} samples."
     )
 
+    from control.distill_control import DistillControl
     distill = DistillControl(
         model=args.model,
         dataset_repo_id=args.dataset_repo_id,

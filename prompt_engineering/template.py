@@ -12,7 +12,10 @@ Place it between {REASONING_START} and {REASONING_END}.
 Then, provide your solution between {SOLUTION_START} and {SOLUTION_END}.
 
 Context:
-{{context}}""".rstrip()
+{{ context }}
+
+Exceptions:
+{{ exceptions }}""".rstrip()
 
 
 DISTILLATION_SYSTEM_PROMPT_TEMPLATE = \
@@ -56,7 +59,6 @@ Expected Output:
 <think>
 Your full reasoning goes here, written as a step-by-step thought process.
 </think>
-
 <sql>
 Your final SQL query goes here
 </sql>""".rstrip()

@@ -1,3 +1,5 @@
+import re
+from utils import extract_think, extract_sql
 from typing import Optional, Literal
 from config import HF_TOKEN
 
@@ -45,18 +47,6 @@ class DistillControl:
         self._initialize(batch_size, retries, use_ray)  # Initialize the distillation pipeline
         self._load_dataset(split, limit)                # Load the dataset
 
-    def _validate_sql(self, sample: dict) -> dict:
-        """
-        Validate the SQL query in the sample.
-        :param sample:
-        :return:
-        """
-        sql_query = sample[self.answer_column]
-        context = sample["sql_context"]
-        is_valid, message = validate_sql_query(sql_query, context)
-        sample["validation"] = "valid" if is_valid else message
-        return sample
-
     def _load_dataset(self, split: str = "train", limit: int = 5_000) -> DatasetDict | Dataset:
         if self.dataset_repo_id is None:
             raise ValueError("dataset_repo_id must be provided")
@@ -68,11 +58,6 @@ class DistillControl:
                 if col not in values_ and col != self.answer_column
             ]
         )
-        if self.validate:
-            self._dataset = self._dataset.map(
-                self._validate_sql,
-                batched=False,
-            )
         return self._dataset
 
     def _initialize(self, batch_size: int, retries: int, use_ray: bool = False) -> None:
@@ -101,39 +86,52 @@ class DistillControl:
             logger.error(f"Error during distillation: {e}")
 
         if self.publish:
-            if self.publish_repo_id is None:
-                raise ValueError("publish_repo_id must be provided when publish is True")
-            if HF_TOKEN is None:
-                raise ValueError("HF_TOKEN must be provided to publish to Hugging Face Hub")
+            self.push_to_hub()
 
-            try:
-                self._distiset.push_to_hub(
-                    repo_id=self.publish_repo_id,
-                    commit_message="Pushing distilled dataset to Hugging Face Hub",
-                    private=self.private_repo,
-                    generate_card=False,
-                    token=HF_TOKEN,
-                )
-                logger.info(
-                    f"Distilled dataset published to Hugging Face Hub at {self.publish_repo_id}"
-                )
-            except Exception as e:
-                logger.error(f"Failed to publish distilled dataset: {e}")
+    def _process(self, sample: dict) -> dict | None:
+        """
+        Process the sample to extract SQL and think components.
+        :param sample:
+        :return: dict
+        """
+        try:
+            generation: str = next(iter(sample['generation']))
+            generation = generation.replace("</think>\n\n", "</think>\n").strip()
+            __think = extract_think(generation)
+            __sql = " ".join(extract_sql(generation).replace("\n", " ").split())
+            generation = re.sub(
+                r"^<think>\n(.*?)\n</think>\n<sql>\n(.*?)\n</sql>",
+                rf"<think>\n{__think.strip()}\n</think>\n<sql>\n{__sql.strip()}\n</sql>",
+                generation,
+                flags=re.DOTALL | re.MULTILINE,
+            )
+            generation = re.sub(r'(?s)(?<=</sql>)(.*?)(<sql>.*?</sql>)+', r'\1', generation, count=1)
+            result = {"generation": generation}
+            if self.validate:
+                is_valid, _exception = validate_sql_query(__sql, sample['sql_context'])
+                result.update({"validation": "valid" if is_valid else _exception})
+            return result
+        except Exception as e:
+            logger.error(f"Error processing sample: {e}")
+            return None
 
-    def publish(self, repo_id: str) -> None:
+    def push_to_hub(self) -> None:
         if self._distiset is None:
             raise ValueError("Distillation must be run before publishing.")
+        if self.publish_repo_id is None:
+            raise ValueError("publish_repo_id must be provided to publish to Hugging Face Hub")
         if HF_TOKEN is None:
             raise ValueError("HF_TOKEN must be provided to publish to Hugging Face Hub")
 
         try:
-            self._distiset.push_to_hub(
-                repo_id=repo_id,
+            dataset: Dataset = self._distiset['default']['train']
+            dataset = dataset.map(lambda x: self._process(x), remove_columns=['distilabel_metadata', 'model_name'])
+            dataset.push_to_hub(
+                repo_id=self.publish_repo_id,
                 commit_message="Pushing distilled dataset to Hugging Face Hub",
                 private=self.private_repo,
-                generate_card=False,
                 token=HF_TOKEN,
             )
-            logger.info(f"Distilled dataset published to Hugging Face Hub at {repo_id}")
+            logger.info(f"Distilled dataset published to Hugging Face Hub at {self.publish_repo_id}")
         except Exception as e:
             logger.error(f"Failed to publish distilled dataset: {e}")
