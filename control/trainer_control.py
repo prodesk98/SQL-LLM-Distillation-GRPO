@@ -6,10 +6,8 @@ from utils import instruction_formatting
 
 try:
     from unsloth import FastLanguageModel, is_bfloat16_supported
-except ImportError:
-    raise ImportError(
-        "Unsloth is not installed. Please install it using 'pip install unsloth'."
-    )
+except ImportError as e:
+    raise ImportError(e) from e
 from trl import GRPOConfig, GRPOTrainer
 from rewards import (
     check_sql_reward,

@@ -1,13 +1,32 @@
-FROM python:3.11-slim-bullseye
+FROM nvidia/cuda:12.1.0-base-ubuntu22.04
 
-ENV DEBIAN_FRONTEND=noninteractive
+ENV TORCH_HOME=/root/.cache/torch
 
-RUN apt-get update && apt-get install -y \
-    git curl build-essential libssl-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget build-essential python3.10 python3-pip python3.10-dev git ca-certificates curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade uv && pip uninstall -y pip setuptools wheel
+RUN python3.10 -m pip install --upgrade pip setuptools wheel
+
+ENV CONDA_DIR /opt/conda
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
+    rm ~/miniconda.sh
+
+ENV PATH=$CONDA_DIR/bin:$PATH
+
+RUN conda create --name unsloth_env python=3.10 -y
+RUN echo "source activate unsloth_env" > ~/.bashrc
+ENV PATH /opt/conda/envs/unsloth_env/bin:$PATH
+ENV CONDA_DEFAULT_ENV=unsloth_env
+
+RUN conda install -n unsloth_env -y pytorch==2.1.0 pytorch-cuda=12.1 -c pytorch -c nvidia
+
+RUN pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
+RUN pip install trl peft xformers accelerate bitsandbytes duckdb loguru python-dotenv
 
 WORKDIR /trainer
 
-COPY .. .
+COPY . .
+
+CMD [ "/bin/sh", "-c", "tail -f /dev/null" ]

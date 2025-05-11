@@ -17,12 +17,14 @@ services:
             - driver: nvidia
               count: all
               capabilities: [ gpu ]
+    volumes:
+      - .cache/huggingface/:/root/.cache/huggingface/
     ports:
     - "8265:8265"
-    command: >
-      uv run main.py train
-      --model unsloth/Phi-4
-      --dataset-repo-id proton98/sql-distill-gpt-4.1-nano-instruct-reasoning
+#    command: >
+#      python main.py train
+#      --model unsloth/Phi-4
+#      --dataset-repo-id proton98/sql-distill-gpt-4.1-nano-instruct-reasoning
 
   distill:
     build:
