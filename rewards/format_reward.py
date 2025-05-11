@@ -43,4 +43,3 @@ def match_format_approximately(completions, **kwargs):
         score += 0.125 if response.count(f"\n{SOLUTION_END}") == 1 else 0
         scores.append(score)
     return scores
-

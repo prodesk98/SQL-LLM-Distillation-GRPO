@@ -1,7 +1,15 @@
 from typing import Optional
 
 from datasets import load_dataset
-from unsloth import FastLanguageModel, is_bfloat16_supported
+
+from utils import instruction_formatting
+
+try:
+    from unsloth import FastLanguageModel, is_bfloat16_supported
+except ImportError:
+    raise ImportError(
+        "Unsloth is not installed. Please install it using 'pip install unsloth'."
+    )
 from trl import GRPOConfig, GRPOTrainer
 from rewards import (
     check_sql_reward,
@@ -9,7 +17,11 @@ from rewards import (
     match_format_approximately,
 )
 
-from config import HF_TOKEN, MAX_SEQ_LEN
+from config import (
+    HF_TOKEN, MAX_SEQ_LENGTH,
+    GPU_MEMORY_UTILIZATION, LORA_ALPHA,
+    LORA_RANK,
+)
 
 
 class TrainerControl:
@@ -18,11 +30,11 @@ class TrainerControl:
             raise ValueError("dataset_repo_id must be provided")
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
             model,
-            max_seq_len = MAX_SEQ_LEN,
-            load_in_4bit = False,
-            load_in_8bit = False,
-            full_finetuning = False,
+            max_seq_length = MAX_SEQ_LENGTH,
+            max_lora_rank = LORA_RANK,
+            load_in_4bit = True,
             token = HF_TOKEN,
+            gpu_memory_utilization = GPU_MEMORY_UTILIZATION,
         )
         self.num_train_epochs = num_train_epochs
         self.training_args: Optional[GRPOConfig] = None
@@ -31,21 +43,15 @@ class TrainerControl:
         self._initialize()
 
     def _initialize(self):
+        dataset_prompt = instruction_formatting(self.dataset)
         self.model = FastLanguageModel.get_peft_model(
             self.model,
-            finetune_vision_layers      = False,
-            finetune_language_layers    = False,
-            finetune_attention_modules  = False,
-            finetune_mlp_modules        = False,
-
-            r = 8,
-            lora_alpha = 8,
-            lora_dropout = 0,
-            bias = "none",
+            r = LORA_RANK,
+            lora_alpha = LORA_ALPHA,
+            use_gradient_checkpointing = "unsloth",
             random_state = 3407,
         )
         self.training_args = GRPOConfig(
-            use_vllm = True, # use vLLM for fast inference!
             learning_rate = 5e-6,
             adam_beta1 = 0.9,
             adam_beta2 = 0.99,
@@ -77,7 +83,7 @@ class TrainerControl:
                 check_sql_reward,
             ],
             args = self.training_args,
-            train_dataset = self.dataset,
+            train_dataset = dataset_prompt,
         )
 
     def train(self):

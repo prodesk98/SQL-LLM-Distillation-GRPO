@@ -1,8 +1,8 @@
-from datasets import DatasetDict
+from datasets import DatasetDict, Dataset
 from prompt_engineering import REASONING_SYSTEM_PROMPT_TEMPLATE
 
 
-def instruction_formatting(dataset: DatasetDict) -> DatasetDict:
+def instruction_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
     """
     Format the instruction for the model.
     :param dataset:

@@ -52,7 +52,7 @@ uv run main.py distill \
   --provider vLLM \
   --validate \
   --publish \
-  --publish-repo-id proton98/sql-distill-llama-3.1-70b-reasoning \
+  --publish-repo-id your_repo_id \
   --private-repo
 ```
 

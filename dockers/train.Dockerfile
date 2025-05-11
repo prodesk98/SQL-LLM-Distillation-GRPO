@@ -8,6 +8,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install --upgrade uv && pip uninstall -y pip setuptools wheel
 
-WORKDIR /app
+WORKDIR /trainer
 
-COPY . .
+COPY .. .

@@ -1,8 +1,11 @@
 from .environment import (
     BASE_URL,
     API_KEY,
-    MAX_SEQ_LEN,
+    MAX_SEQ_LENGTH,
+    LORA_RANK,
     MAX_PROMPT_LENGTH,
+    GPU_MEMORY_UTILIZATION,
+    LORA_ALPHA,
     TEMPERATURE,
     HF_TOKEN,
     TENSOR_PARALLEL_SIZE,
