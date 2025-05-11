@@ -16,6 +16,6 @@ def instruction_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
             )},
             {"role": "user", "content": x["sql_prompt"]},
         ],
-        "answer": next(iter(x["generation"])),
+        "answer": x["generation"],
     })
     return dataset

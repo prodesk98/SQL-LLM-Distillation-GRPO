@@ -3011,7 +3011,6 @@ dependencies = [
     { name = "pynvml" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
-    { name = "transformers" },
     { name = "trl" },
 ]
 
@@ -3024,7 +3023,6 @@ requires-dist = [
     { name = "pynvml", specifier = ">=12.0.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
-    { name = "transformers", specifier = "==4.51.3" },
     { name = "trl", specifier = ">=0.17.0" },
 ]
 
