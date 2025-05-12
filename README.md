@@ -36,7 +36,7 @@ To get started, copy the template:
 ```bash
 cp template.env .env
 cp template.config.yaml config.yaml
-cp template.prod .prod
+cp template.prod .train
 ```
 
 ### 🔧 `distill` Command – SQL-RL-Distillation-LLM
@@ -83,7 +83,7 @@ The `train` command fine-tunes the distilled model using reinforcement learning.
 #### ✅ Common Usage:
 
 ```bash
-uv run main.py train
-      --model unsloth/Phi-4
-      --dataset-repo-id proton98/sql-distill-gpt-4.1-nano-instruct-reasoning
+uv run main.py train \
+  --model unsloth/Phi-4 \
+  --dataset-repo-id proton98/sql-distill-gpt-4.1-nano-instruct-reasoning
 ```     

@@ -174,4 +174,4 @@ cython_debug/
 .pypirc
 
 config.yaml
-.prod
+.train

@@ -40,6 +40,11 @@ parser_train.add_argument(
     default="gretelai/synthetic_text_to_sql",
     help="Path to the training dataset. Default is 'gretelai/synthetic_text_to_sql'.",
 )
+parser_train.add_argument(
+    "--use-vllm",
+    action="store_true",
+    help="Use vLLM for training. Default is False.",
+)
 #
 
 # Distill subparser
@@ -133,6 +138,7 @@ if args.command == "train":
         model=args.model,
         num_train_epochs=args.num_train_epochs,
         dataset_repo_id=args.dataset_repo_id,
+        use_vllm=args.use_vllm,
     )
     trainer.train()
 elif args.command == "distill":
