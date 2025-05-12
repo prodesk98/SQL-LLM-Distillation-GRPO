@@ -84,6 +84,6 @@ The `train` command fine-tunes the distilled model using reinforcement learning.
 
 ```bash
 uv run main.py train \
-  --model unsloth/Phi-4 \
+  --model Qwen/Qwen2.5-3B-Instruct \
   --dataset-repo-id proton98/sql-distill-gpt-4.1-nano-instruct-reasoning
-```     
+```

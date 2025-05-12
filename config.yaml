@@ -1,5 +1,5 @@
 base_url: "https://api.openai.com/v1"
-max_seq_length: 1024
+max_seq_length: 8192
 max_prompt_length: 8196
 temperature: 0.6
 tensor_parallel_size: 1
