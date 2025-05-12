@@ -1,8 +1,8 @@
 from utils import validate_sql_query, extract_context
-from .format_reward import match_format
+from .format_reward import reasoning_match_format
 
 
-def check_sql_reward(prompts, completions, answer, **kwargs):
+def check_sql_reward(prompts, completions, answer, **kwargs) -> list[float]:
     """
     Check the SQL reward for the given prompts and completions.
     :param prompts:
@@ -15,7 +15,7 @@ def check_sql_reward(prompts, completions, answer, **kwargs):
 
     extracted_responses = [
         guess.group(1)
-        if (guess := match_format.search(r)) is not None else None \
+        if (guess := reasoning_match_format.search(r)) is not None else None \
         for r in responses
     ]
 
@@ -24,17 +24,15 @@ def check_sql_reward(prompts, completions, answer, **kwargs):
         for p in prompts
     ]
 
-    scores = []
+    scores: list[float] = []
     for guess, context, true_answer in zip(extracted_responses, extracted_contexts, answer):
         score = 0
         if guess is None:
             scores.append(0)
             continue
 
-        is_valid, error_message = validate_sql_query(guess, context)
         # Check if the SQL query is valid
-        if is_valid:
-            score += 1.5
+        is_valid, error_message = validate_sql_query(guess, context)
 
         # Check if the SQL query is similar to the true SQL
         # Correct answer gets 3 points
