@@ -47,7 +47,7 @@ services:
       --limit 100
       --publish
       --dataset-repo-id gretelai/synthetic_text_to_sql
-      --publish-repo-id proton98/sql-distill-Llama-3.2-1B-reasoning
+      --publish-repo-id ${NAMESPACE}/sql-distill-Llama-3.2-1B-reasoning
       --provider HuggingFace
       --model meta-llama/Llama-3.2-1B
       --validate
