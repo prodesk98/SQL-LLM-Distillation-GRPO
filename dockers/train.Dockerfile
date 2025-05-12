@@ -30,4 +30,5 @@ WORKDIR /trainer
 
 COPY . .
 
-CMD [ "python", "main.py", "train", "--model", "${MODEL}", "--dataset-repo-id", "${REPO_ID}", "--use-vllm" ]
+RUN chmod +x entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]
