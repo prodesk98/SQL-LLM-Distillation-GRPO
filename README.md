@@ -35,6 +35,8 @@ To get started, copy the template:
 
 ```bash
 cp template.env .env
+cp template.config.yaml config.yaml
+cp template.prod .prod
 ```
 
 ### 🔧 `distill` Command – SQL-RL-Distillation-LLM
@@ -74,3 +76,14 @@ uv run main.py distill \
 | `--private-repo`    | Makes the published repo private (recommended for internal use).                             |
 | `--retries`         | Number of retry attempts for failed completions. Default: `3`.                               |
 | `--use-ray`         | Enables distributed processing via Ray (useful for large-scale distillation).                |
+
+
+### 🛠️ `train` Command – SQL-RL-Training
+The `train` command fine-tunes the distilled model using reinforcement learning. It supports various training configurations, including batch size, learning rate, and training steps.
+#### ✅ Common Usage:
+
+```bash
+uv run main.py train
+      --model unsloth/Phi-4
+      --dataset-repo-id proton98/sql-distill-gpt-4.1-nano-instruct-reasoning
+```     

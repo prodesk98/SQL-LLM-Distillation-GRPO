@@ -7,6 +7,7 @@ services:
       dockerfile: dockers/train.Dockerfile
     env_file:
     - .env
+    - .prod
     environment:
     - NVIDIA_VISIBLE_DEVICES=all
     - NVIDIA_DRIVER_CAPABILITIES=compute,utility
@@ -21,10 +22,10 @@ services:
       - .cache/huggingface/:/root/.cache/huggingface/
     ports:
     - "8265:8265"
-#    command: >
-#      python main.py train
-#      --model unsloth/Phi-4
-#      --dataset-repo-id proton98/sql-distill-gpt-4.1-nano-instruct-reasoning
+    command: >
+      python main.py train
+      --model unsloth/Phi-4
+      --dataset-repo-id proton98/sql-distill-gpt-4.1-nano-instruct-reasoning
 
   distill:
     build:

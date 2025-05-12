@@ -23,6 +23,7 @@ ENV CONDA_DEFAULT_ENV=unsloth_env
 RUN conda install -n unsloth_env -y pytorch==2.1.0 pytorch-cuda=12.1 -c pytorch -c nvidia
 
 RUN pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
+RUN pip install https://github.com/unslothai/vllm.git
 RUN pip install trl peft xformers accelerate bitsandbytes duckdb loguru python-dotenv
 
 WORKDIR /trainer
