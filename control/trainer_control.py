@@ -20,7 +20,7 @@ from config import (
     GPU_MEMORY_UTILIZATION, LORA_ALPHA,
     LORA_RANK, MAX_PROMPT_LENGTH, LEARNING_RATE, ADAM_BETA1, ADAM_BETA2, WEIGHT_DECAY, WARMUP_RATIO, LR_SCHEDULER_TYPE,
     OPTIM, LOGGING_STEPS, PER_DEVICE_TRAIN_BATCH_SIZE, GRADIENT_ACCUMULATION_STEPS, NUM_GENERATIONS,
-    MAX_COMPLETION_LENGTH, MAX_STEPS, SAVE_STEPS, MAX_GRAD_NORM, REPORT_TO, OUTPUT_DIR,
+    MAX_COMPLETION_LENGTH, MAX_STEPS, SAVE_STEPS, MAX_GRAD_NORM, REPORT_TO, OUTPUT_DIR, LORA_DROPOUT,
 )
 
 
@@ -31,10 +31,13 @@ class TrainerControl:
         num_train_epochs: int = -1,
         dataset_repo_id: str = None,
         use_vllm: bool = True,
-        load_in_4bit: bool = True,
+        load_in_4bit: bool = False,
+        publish_repo_id: Optional[str] = None,
     ):
         if dataset_repo_id is None:
             raise ValueError("dataset_repo_id must be provided")
+        self.publish_repo_id = publish_repo_id
+        self.use_vllm = use_vllm
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
             model,
             max_seq_length = MAX_SEQ_LENGTH,
@@ -48,16 +51,20 @@ class TrainerControl:
         self.training_args: Optional[GRPOConfig] = None
         self.trainer: Optional[GRPOTrainer] = None
         self.dataset = load_dataset(dataset_repo_id, split="train")
-        self._initialize(use_vllm)
+        self._initialize()
 
-    def _initialize(self, use_vllm: bool = True):
+    def _initialize(self):
         dataset_prompt = instruction_formatting(self.dataset)
         self.model = FastLanguageModel.get_peft_model(
             self.model,
             r = LORA_RANK,
             lora_alpha = LORA_ALPHA,
+            lora_dropout = LORA_DROPOUT,
+            bias = "none",
             use_gradient_checkpointing = "unsloth",
             random_state = 3407,
+            use_rslora = False,
+            loftq_config = None,
         )
         self.training_args = GRPOConfig(
             learning_rate = LEARNING_RATE,
@@ -81,7 +88,7 @@ class TrainerControl:
             max_grad_norm = MAX_GRAD_NORM,
             report_to = REPORT_TO, # Can use Weights & Biases
             output_dir = OUTPUT_DIR,
-            use_vllm = use_vllm,
+            use_vllm = self.use_vllm,
         )
         self.trainer = GRPOTrainer(
             model = self.model,
@@ -98,5 +105,12 @@ class TrainerControl:
     def train(self):
         self.trainer.train()
 
-    def evaluate(self):
-        ...
+    def publish(self):
+        if self.publish_repo_id is None:
+            raise ValueError("publish_repo_id must be provided")
+        self.trainer.push_to_hub(
+            repo_id = self.publish_repo_id,
+            commit_message = "Initial commit",
+            private_repo = True,
+            token = HF_TOKEN,
+        )

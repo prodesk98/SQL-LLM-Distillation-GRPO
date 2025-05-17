@@ -3,6 +3,7 @@ from .environment import (
     API_KEY,
     MAX_SEQ_LENGTH,
     LORA_RANK,
+    LORA_DROPOUT,
     MAX_PROMPT_LENGTH,
     GPU_MEMORY_UTILIZATION,
     LORA_ALPHA,

@@ -34,7 +34,7 @@ def extract_context(text: str) -> str | None:
     :param text: The full system prompt text.
     :return: The context string or None if not found.
     """
-    match = re.search(r"Context:\s*(.*?)\s*Exceptions:", text, re.DOTALL)
+    match = re.search(r"Context:\s*(.+)", text, re.DOTALL)
     if match:
         return match.group(1).strip()
 

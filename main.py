@@ -40,6 +40,11 @@ parser_train.add_argument(
     default="gretelai/synthetic_text_to_sql",
     help="Path to the training dataset. Default is 'gretelai/synthetic_text_to_sql'.",
 )
+parser_train.add_argument(
+    "--publish-repo-id",
+    type=str,
+    help="Path to the published repository. This is a required argument if --publish is set.",
+)
 #
 
 # Distill subparser
@@ -134,6 +139,8 @@ if args.command == "train":
         num_train_epochs=args.num_train_epochs,
         dataset_repo_id=args.dataset_repo_id,
         use_vllm=False,
+        load_in_4bit=True,
+        publish_repo_id=args.publish_repo_id,
     )
     trainer.train()
 elif args.command == "distill":

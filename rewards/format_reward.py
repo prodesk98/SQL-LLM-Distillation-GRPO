@@ -37,9 +37,9 @@ def match_format_approximately(completions, **kwargs) -> list[float]:
     for completion in completions:
         score = 0
         response = completion[0]["content"]
-        score += 0.125 if response.count(f"{REASONING_START}\n") == 1 else 0
-        score += 0.125 if response.count(f"\n{REASONING_END}\n") == 1 else 0
-        score += 0.125 if response.count(f"\n{SOLUTION_START}\n") == 1 else 0
-        score += 0.125 if response.count(f"\n{SOLUTION_END}") == 1 else 0
+        score += 0.125 if response.count(f"{REASONING_START}\n")    == 1 else -1.0
+        score += 0.125 if response.count(f"\n{REASONING_END}\n")    == 1 else -1.0
+        score += 0.125 if response.count(f"\n{SOLUTION_START}\n")   == 1 else -1.0
+        score += 0.125 if response.count(f"\n{SOLUTION_END}")       == 1 else -1.0
         scores.append(score)
     return scores

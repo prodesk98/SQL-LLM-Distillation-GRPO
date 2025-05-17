@@ -1,5 +1,21 @@
 from datasets import DatasetDict, Dataset
 from prompt_engineering import REASONING_SYSTEM_PROMPT_TEMPLATE
+from prompt_engineering.template import (
+    REASONING_START, REASONING_END,
+    SOLUTION_START, SOLUTION_END
+)
+from .parser import extract_sql, extract_think
+
+
+def exact_format(content: str) -> str:
+    """
+    Formatting prompt for exact match.
+    :param content:
+    :return:
+    """
+    __think = extract_think(content)
+    __sql = extract_sql(content)
+    return f"""{REASONING_START}\n{__think}\n{REASONING_END}\n{SOLUTION_START}\n{__sql}\n{SOLUTION_END}"""
 
 
 def instruction_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
@@ -13,6 +29,6 @@ def instruction_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
             {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"])},
             {"role": "user", "content": x["sql_prompt"]},
         ],
-        "answer": x["generation"],
+        "answer": exact_format(x["generation"]),
     })
     return dataset
