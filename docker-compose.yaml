@@ -6,11 +6,11 @@ services:
       context: .
       dockerfile: dockers/train.Dockerfile
     env_file:
-    - .env
-    - .train
+      - .env
+      - .train
     environment:
-    - NVIDIA_VISIBLE_DEVICES=all
-    - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     deploy:
       resources:
         reservations:

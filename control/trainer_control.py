@@ -30,7 +30,7 @@ class TrainerControl:
         model: str,
         num_train_epochs: int = -1,
         dataset_repo_id: str = None,
-        use_vllm: bool = False,
+        use_vllm: bool = True,
         load_in_4bit: bool = True,
     ):
         if dataset_repo_id is None:
@@ -50,7 +50,7 @@ class TrainerControl:
         self.dataset = load_dataset(dataset_repo_id, split="train")
         self._initialize(use_vllm)
 
-    def _initialize(self, use_vllm: bool = False):
+    def _initialize(self, use_vllm: bool = True):
         dataset_prompt = instruction_formatting(self.dataset)
         self.model = FastLanguageModel.get_peft_model(
             self.model,

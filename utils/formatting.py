@@ -10,10 +10,7 @@ def instruction_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
     """
     dataset = dataset.map(lambda x: {
         "prompt": [
-            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(
-                context=x["sql_context"],
-                exceptions="No exceptions (**SQL validated**)" if x["validation"] != "valid" else x["validation"],
-            )},
+            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"])},
             {"role": "user", "content": x["sql_prompt"]},
         ],
         "answer": x["generation"],

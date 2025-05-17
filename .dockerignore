@@ -1,5 +1,6 @@
 .venv
 .cache
+.lunix_train
 __pycache__/
 *.pyc
 *.pyo

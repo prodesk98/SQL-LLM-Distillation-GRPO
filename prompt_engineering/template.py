@@ -12,10 +12,7 @@ Place it between {REASONING_START} and {REASONING_END}.
 Then, provide your solution between {SOLUTION_START} and {SOLUTION_END}.
 
 Context:
-{{context}}
-
-Exceptions:
-{{exceptions}}""".rstrip()
+{{context}}""".rstrip()
 
 
 DISTILLATION_SYSTEM_PROMPT_TEMPLATE = \

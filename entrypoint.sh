@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
 python main.py train \
 --model ${MODEL} \
---dataset-repo-id ${DATASET_REPO_ID} \
---use-vllm
+--dataset-repo-id ${REPO_ID}
