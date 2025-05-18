@@ -1,13 +1,13 @@
 from datasets import DatasetDict, Dataset
 from prompt_engineering import REASONING_SYSTEM_PROMPT_TEMPLATE
-from prompt_engineering.template import (
+from utils.constraints import (
     REASONING_START, REASONING_END,
     SOLUTION_START, SOLUTION_END
 )
 from .parser import extract_sql, extract_think
 
 
-def exact_format(content: str) -> str:
+def _CoT_format(content: str) -> str:
     """
     Formatting prompt for exact match.
     :param content:
@@ -18,9 +18,9 @@ def exact_format(content: str) -> str:
     return f"""{REASONING_START}\n{__think}\n{REASONING_END}\n{SOLUTION_START}\n{__sql}\n{SOLUTION_END}"""
 
 
-def instruction_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
+def conversations_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
     """
-    Format the instruction for the model.
+    Format the conversations for the model.
     :param dataset:
     :return:
     """
@@ -28,7 +28,10 @@ def instruction_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
         "prompt": [
             {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"])},
             {"role": "user", "content": x["sql_prompt"]},
+            {"role": "assistant", "content": _CoT_format(x["generation"])},
         ],
-        "answer": exact_format(x["generation"]),
+        "questions": x["sql_prompt"],
+        "contexts": x["sql_context"],
+        "answers": extract_sql(x["generation"]),
     })
     return dataset

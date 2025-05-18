@@ -2,7 +2,7 @@ from typing import Optional
 
 from datasets import load_dataset
 
-from utils import instruction_formatting
+from utils import conversations_formatting
 
 try:
     from unsloth import FastLanguageModel, is_bfloat16_supported
@@ -20,8 +20,12 @@ from config import (
     GPU_MEMORY_UTILIZATION, LORA_ALPHA,
     LORA_RANK, MAX_PROMPT_LENGTH, LEARNING_RATE, ADAM_BETA1, ADAM_BETA2, WEIGHT_DECAY, WARMUP_RATIO, LR_SCHEDULER_TYPE,
     OPTIM, LOGGING_STEPS, PER_DEVICE_TRAIN_BATCH_SIZE, GRADIENT_ACCUMULATION_STEPS, NUM_GENERATIONS,
-    MAX_COMPLETION_LENGTH, MAX_STEPS, SAVE_STEPS, MAX_GRAD_NORM, REPORT_TO, OUTPUT_DIR, LORA_DROPOUT,
+    MAX_COMPLETION_LENGTH, MAX_STEPS, SAVE_STEPS, MAX_GRAD_NORM, REPORT_TO, OUTPUT_DIR, LORA_DROPOUT, TEMPERATURE,
 )
+
+import os
+os.environ['TORCH_LOGS'] = "+dynamo"
+os.environ['TORCHDYNAMO_VERBOSE'] = "1"
 
 
 class TrainerControl:
@@ -31,7 +35,7 @@ class TrainerControl:
         num_train_epochs: int = -1,
         dataset_repo_id: str = None,
         use_vllm: bool = True,
-        load_in_4bit: bool = False,
+        load_in_4bit: bool = True,
         publish_repo_id: Optional[str] = None,
     ):
         if dataset_repo_id is None:
@@ -54,7 +58,7 @@ class TrainerControl:
         self._initialize()
 
     def _initialize(self):
-        dataset_prompt = instruction_formatting(self.dataset)
+        train_dataset = conversations_formatting(self.dataset)
         self.model = FastLanguageModel.get_peft_model(
             self.model,
             r = LORA_RANK,
@@ -64,7 +68,8 @@ class TrainerControl:
             use_gradient_checkpointing = "unsloth",
             random_state = 3407,
             use_rslora = False,
-            loftq_config = None,
+            loftq_config = {},
+            finetune_vision_layers = False,
         )
         self.training_args = GRPOConfig(
             learning_rate = LEARNING_RATE,
@@ -78,17 +83,18 @@ class TrainerControl:
             bf16 = is_bfloat16_supported(),
             fp16 = not is_bfloat16_supported(),
             per_device_train_batch_size = PER_DEVICE_TRAIN_BATCH_SIZE,
-            gradient_accumulation_steps = GRADIENT_ACCUMULATION_STEPS, # Increase to 4 for smoother training
-            num_generations = NUM_GENERATIONS, # Decrease if out of memory
+            gradient_accumulation_steps = GRADIENT_ACCUMULATION_STEPS,
+            num_generations = NUM_GENERATIONS,
             max_prompt_length = MAX_PROMPT_LENGTH,
             max_completion_length = MAX_COMPLETION_LENGTH,
-            num_train_epochs = self.num_train_epochs, # Set to 1 for a full training run
+            num_train_epochs = self.num_train_epochs,
             max_steps = MAX_STEPS,
             save_steps = SAVE_STEPS,
             max_grad_norm = MAX_GRAD_NORM,
-            report_to = REPORT_TO, # Can use Weights & Biases
+            report_to = REPORT_TO,
             output_dir = OUTPUT_DIR,
             use_vllm = self.use_vllm,
+            temperature = TEMPERATURE,
         )
         self.trainer = GRPOTrainer(
             model = self.model,
@@ -99,7 +105,7 @@ class TrainerControl:
                 check_sql_reward,
             ],
             args = self.training_args,
-            train_dataset = dataset_prompt,
+            train_dataset = train_dataset,
         )
 
     def train(self):

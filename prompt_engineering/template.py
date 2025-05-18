@@ -1,8 +1,9 @@
-
-REASONING_START = "<think>"
-REASONING_END = "</think>"
-SOLUTION_START = "<sql>"
-SOLUTION_END = "</sql>"
+from utils.constraints import (
+    REASONING_START,
+    REASONING_END,
+    SOLUTION_START,
+    SOLUTION_END
+)
 
 
 REASONING_SYSTEM_PROMPT_TEMPLATE = \

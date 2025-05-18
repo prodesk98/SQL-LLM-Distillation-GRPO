@@ -1,16 +1,16 @@
 import re
-from prompt_engineering.template import (
+from utils.constraints import (
     REASONING_START, REASONING_END,
     SOLUTION_START, SOLUTION_END
 )
 
 
 reasoning_match_format = re.compile(
-    rf"^{REASONING_START}\n.*?\n{REASONING_END}\n{SOLUTION_START}\n.*?\n{SOLUTION_END}\n$",
+    rf"^{REASONING_START}\n.*?\n{REASONING_END}\n{SOLUTION_START}\n.*?\n{SOLUTION_END}$",
     re.DOTALL | re.MULTILINE
 )
 
-def match_format_exactly(completions, **kwargs) -> list[float]:
+def match_format_exactly(completions: list[list[dict[str, str]]], **kwargs) -> list[float]: # noqa
     """
     Check if the completions match the expected format exactly.
     :param completions:
@@ -26,7 +26,7 @@ def match_format_exactly(completions, **kwargs) -> list[float]:
     return scores
 
 
-def match_format_approximately(completions, **kwargs) -> list[float]:
+def match_format_approximately(completions: list[list[dict[str, str]]], **kwargs) -> list[float]: # noqa
     """
     Check if the completions match the expected format approximately.
     :param completions:

@@ -138,7 +138,7 @@ if args.command == "train":
         model=args.model,
         num_train_epochs=args.num_train_epochs,
         dataset_repo_id=args.dataset_repo_id,
-        use_vllm=False,
+        use_vllm=True,
         load_in_4bit=True,
         publish_repo_id=args.publish_repo_id,
     )

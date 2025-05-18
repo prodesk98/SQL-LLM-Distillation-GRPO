@@ -2,3 +2,8 @@ COLORED_GREEN = "\033[92m"
 COLORED_BLUE = "\033[94m"
 COLORED_RESET = "\033[0m"
 BOLD = "\033[1m"
+
+REASONING_START = "<think>"
+REASONING_END = "</think>"
+SOLUTION_START = "<sql>"
+SOLUTION_END = "</sql>"
