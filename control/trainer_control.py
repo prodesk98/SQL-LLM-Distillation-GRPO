@@ -23,10 +23,6 @@ from config import (
     MAX_COMPLETION_LENGTH, MAX_STEPS, SAVE_STEPS, MAX_GRAD_NORM, REPORT_TO, OUTPUT_DIR, LORA_DROPOUT, TEMPERATURE,
 )
 
-import os
-os.environ['TORCH_LOGS'] = "+dynamo"
-os.environ['TORCHDYNAMO_VERBOSE'] = "1"
-
 
 class TrainerControl:
     def __init__(
@@ -68,8 +64,6 @@ class TrainerControl:
             use_gradient_checkpointing = "unsloth",
             random_state = 3407,
             use_rslora = False,
-            loftq_config = {},
-            finetune_vision_layers = False,
         )
         self.training_args = GRPOConfig(
             learning_rate = LEARNING_RATE,
@@ -114,9 +108,9 @@ class TrainerControl:
     def publish(self):
         if self.publish_repo_id is None:
             raise ValueError("publish_repo_id must be provided")
-        self.trainer.push_to_hub(
-            repo_id = self.publish_repo_id,
-            commit_message = "Initial commit",
-            private_repo = True,
+        self.model.push_to_hub_gguf(
+            self.publish_repo_id,
+            self.tokenizer,
+            quantization_method = ["q4_k_m", "q8_0", "q5_k_m"],
             token = HF_TOKEN,
         )

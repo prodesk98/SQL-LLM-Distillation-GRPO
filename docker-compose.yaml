@@ -1,5 +1,3 @@
-
-
 services:
   train:
     build:
@@ -20,8 +18,7 @@ services:
               capabilities: [ gpu ]
     volumes:
       - .cache/huggingface/:/root/.cache/huggingface/
-    ports:
-    - "8265:8265"
+      - .cache/unsloth_compiled_cache/:/trainer/unsloth_compiled_cache/
 
   distill:
     build:

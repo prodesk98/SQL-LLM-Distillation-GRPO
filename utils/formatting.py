@@ -7,7 +7,7 @@ from utils.constraints import (
 from .parser import extract_sql, extract_think
 
 
-def _CoT_format(content: str) -> str:
+def _reasoning_format(content: str) -> str:
     """
     Formatting prompt for exact match.
     :param content:
@@ -28,7 +28,7 @@ def conversations_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
         "prompt": [
             {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"])},
             {"role": "user", "content": x["sql_prompt"]},
-            {"role": "assistant", "content": _CoT_format(x["generation"])},
+            {"role": "assistant", "content": _reasoning_format(x["generation"])},
         ],
         "questions": x["sql_prompt"],
         "contexts": x["sql_context"],
