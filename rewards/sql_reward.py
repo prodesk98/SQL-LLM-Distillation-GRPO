@@ -3,7 +3,6 @@ from utils.constraints import COLORED_GREEN, COLORED_RESET, BOLD, COLORED_BLUE
 
 
 def check_sql_reward(
-    prompts: list[list[dict[str, str]]],
     completions: list[list[dict[str, str]]],
     questions: list[str],
     answers: list[str],
@@ -12,7 +11,6 @@ def check_sql_reward(
 ) -> list[float]:
     """
     Check the SQL reward for the given prompts and completions.
-    :param prompts:
     :param completions:
     :param questions:
     :param answers:
@@ -20,12 +18,8 @@ def check_sql_reward(
     :param kwargs:
     :return:
     """
-    print("prompts[check_sql_reward]", prompts, len(prompts))
-    print("completions[check_sql_reward]", completions, len(completions))
     responses = [completion[0]["content"] for completion in completions]
-
     pred_responses: list[str | None] = [extract_sql(r) for r in responses]
-    print(pred_responses)
 
     print(
         '-'*20,
