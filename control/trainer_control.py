@@ -40,8 +40,8 @@ class TrainerControl:
         self.use_vllm = use_vllm
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
             model,
+            max_lora_rank = 64,
             max_seq_length = MAX_SEQ_LENGTH,
-            max_lora_rank = LORA_RANK,
             load_in_4bit = load_in_4bit,
             fast_inference = use_vllm,
             token = HF_TOKEN,
@@ -108,9 +108,8 @@ class TrainerControl:
     def publish(self):
         if self.publish_repo_id is None:
             raise ValueError("publish_repo_id must be provided")
-        self.model.push_to_hub_gguf(
+        self.model.push_to_hub_merged(
             self.publish_repo_id,
             self.tokenizer,
-            quantization_method = ["q4_k_m", "q8_0", "q5_k_m"],
             token = HF_TOKEN,
         )
