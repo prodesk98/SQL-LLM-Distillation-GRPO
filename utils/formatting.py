@@ -26,7 +26,7 @@ def conversations_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
     """
     dataset = dataset.map(lambda x: {
         "prompt": [
-            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"])},
+            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"]).strip()},
             {"role": "user", "content": x["sql_prompt"]},
         ],
         "questions": x["sql_prompt"],

@@ -27,7 +27,7 @@ Respond in the following format:
 
 
 DISTILLATION_SYSTEM_PROMPT_TEMPLATE = \
-"""You are a highly skilled AI assistant trained to generate precise SQL queries through clear and logical reasoning.
+f"""You are a highly skilled AI assistant trained to generate precise SQL queries through clear and logical reasoning.
 
 Your task is to:
 1. Carefully interpret a natural language instruction.
@@ -50,23 +50,23 @@ Guidelines:
 ---
 
 ### Instruction:
-{{ instruction }}
+{{instruction}}
 
 ### Context:
-{{ context }}
+{{context}}
 
 ### Objective:
-{{ objective }}
+{{objective}}
 
 ### Explanation:
-{{ explanation }}
+{{explanation}}
 
 ---
 
 Expected Output:
-<think>
-Your full reasoning goes here, written as a step-by-step thought process.
-</think>
-<sql>
-Your final SQL query goes here
-</sql>""".rstrip()
+{REASONING_START}
+...
+{REASONING_END}
+{SOLUTION_START}
+...
+{SOLUTION_END}""".rstrip()
