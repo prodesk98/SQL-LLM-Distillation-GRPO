@@ -2,13 +2,13 @@ from typing import Optional
 
 from datasets import load_dataset
 
-from utils import conversations_formatting
+from utils import conversations_grpo_format, conversations_supervised_fine_tuning_format
 
 try:
     from unsloth import FastLanguageModel, is_bfloat16_supported
 except ImportError as e:
     raise ImportError(e) from e
-from trl import GRPOConfig, GRPOTrainer
+from trl import GRPOConfig, GRPOTrainer, SFTTrainer, SFTConfig
 from rewards import (
     check_sql_reward,
     match_format_exactly,
@@ -27,7 +27,7 @@ from config import (
 class TrainerControl:
     def __init__(
         self,
-        model: str,
+        model_name: str,
         num_train_epochs: int = -1,
         dataset_repo_id: str = None,
         use_vllm: bool = True,
@@ -39,7 +39,7 @@ class TrainerControl:
         self.publish_repo_id = publish_repo_id
         self.use_vllm = use_vllm
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
-            model,
+            model_name,
             max_lora_rank = 64,
             max_seq_length = MAX_SEQ_LENGTH,
             load_in_4bit = load_in_4bit,
@@ -48,13 +48,10 @@ class TrainerControl:
             gpu_memory_utilization = GPU_MEMORY_UTILIZATION,
         )
         self.num_train_epochs = num_train_epochs
-        self.training_args: Optional[GRPOConfig] = None
-        self.trainer: Optional[GRPOTrainer] = None
         self.dataset = load_dataset(dataset_repo_id, split="train")
         self._initialize()
 
     def _initialize(self):
-        train_dataset = conversations_formatting(self.dataset)
         self.model = FastLanguageModel.get_peft_model(
             self.model,
             r = LORA_RANK,
@@ -65,45 +62,76 @@ class TrainerControl:
             random_state = 3407,
             use_rslora = False,
         )
-        self.training_args = GRPOConfig(
-            learning_rate = LEARNING_RATE,
-            adam_beta1 = ADAM_BETA1,
-            adam_beta2 = ADAM_BETA2,
-            weight_decay = WEIGHT_DECAY,
-            warmup_ratio = WARMUP_RATIO,
-            lr_scheduler_type = LR_SCHEDULER_TYPE,
-            optim = OPTIM,
-            logging_steps = LOGGING_STEPS,
-            bf16 = is_bfloat16_supported(),
-            fp16 = not is_bfloat16_supported(),
-            per_device_train_batch_size = PER_DEVICE_TRAIN_BATCH_SIZE,
-            gradient_accumulation_steps = GRADIENT_ACCUMULATION_STEPS,
-            num_generations = NUM_GENERATIONS,
-            max_prompt_length = MAX_PROMPT_LENGTH,
-            max_completion_length = MAX_COMPLETION_LENGTH,
-            num_train_epochs = self.num_train_epochs,
-            max_steps = MAX_STEPS,
-            save_steps = SAVE_STEPS,
-            max_grad_norm = MAX_GRAD_NORM,
-            report_to = REPORT_TO,
-            output_dir = OUTPUT_DIR,
-            use_vllm = self.use_vllm,
-            temperature = TEMPERATURE,
+
+
+    def _sft_trainer(self):
+        train_dataset = conversations_supervised_fine_tuning_format(self.dataset)
+        train_dataset = train_dataset.map(
+            lambda x: {"text": self.tokenizer.apply_chat_template(x["messages"], batched=True, tokenize=False)},
+            remove_columns=["messages"])
+        trainer = SFTTrainer(
+            model=self.model,
+            tokenizer=self.tokenizer,
+            train_dataset=train_dataset,
+            args=SFTConfig(
+                dataset_text_field="text",
+                per_device_train_batch_size=8,
+                gradient_accumulation_steps=1,
+                warmup_steps=5,
+                num_train_epochs=1,
+                learning_rate=2e-5,
+                logging_steps=5,
+                optim="adamw_8bit",
+                weight_decay=0.01,
+                lr_scheduler_type="linear",
+                seed=3407,
+                report_to="none",
+            ),
         )
-        self.trainer = GRPOTrainer(
-            model = self.model,
-            processing_class = self.tokenizer,
-            reward_funcs = [ # type: ignore
+        trainer.train()
+
+    def _grpo_trainer(self):
+        train_dataset = conversations_grpo_format(self.dataset)
+        trainer = GRPOTrainer(
+            model=self.model,
+            processing_class=self.tokenizer,
+            reward_funcs=[  # type: ignore
                 match_format_exactly,
                 match_format_approximately,
                 check_sql_reward,
             ],
-            args = self.training_args,
-            train_dataset = train_dataset,
+            args=GRPOConfig(
+                learning_rate=LEARNING_RATE,
+                adam_beta1=ADAM_BETA1,
+                adam_beta2=ADAM_BETA2,
+                weight_decay=WEIGHT_DECAY,
+                warmup_ratio=WARMUP_RATIO,
+                lr_scheduler_type=LR_SCHEDULER_TYPE,
+                optim=OPTIM,
+                logging_steps=LOGGING_STEPS,
+                bf16=is_bfloat16_supported(),
+                fp16=not is_bfloat16_supported(),
+                per_device_train_batch_size=PER_DEVICE_TRAIN_BATCH_SIZE,
+                gradient_accumulation_steps=GRADIENT_ACCUMULATION_STEPS,
+                num_generations=NUM_GENERATIONS,
+                max_prompt_length=MAX_PROMPT_LENGTH,
+                max_completion_length=MAX_COMPLETION_LENGTH,
+                num_train_epochs=self.num_train_epochs,
+                max_steps=MAX_STEPS,
+                save_steps=SAVE_STEPS,
+                max_grad_norm=MAX_GRAD_NORM,
+                report_to=REPORT_TO,
+                output_dir=OUTPUT_DIR,
+                use_vllm=self.use_vllm,
+                temperature=TEMPERATURE,
+            ),
+            train_dataset=train_dataset,
         )
+        trainer.train()
 
     def train(self):
-        self.trainer.train()
+        self._sft_trainer()
+        self._grpo_trainer()
 
     def publish(self):
         if self.publish_repo_id is None:

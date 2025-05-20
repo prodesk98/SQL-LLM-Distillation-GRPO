@@ -7,7 +7,7 @@ from utils.constraints import (
 from .parser import extract_sql, extract_think
 
 
-def _reasoning_format(content: str) -> str:
+def correct_reasoning_format(content: str) -> str:
     """
     Formatting prompt for exact match.
     :param content:
@@ -18,7 +18,7 @@ def _reasoning_format(content: str) -> str:
     return f"""{REASONING_START}\n{__think}\n{REASONING_END}\n{SOLUTION_START}\n{__sql}\n{SOLUTION_END}"""
 
 
-def conversations_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
+def conversations_grpo_format(dataset: DatasetDict) -> Dataset | DatasetDict:
     """
     Format the conversations for the model.
     :param dataset:
@@ -26,11 +26,31 @@ def conversations_formatting(dataset: DatasetDict) -> Dataset | DatasetDict:
     """
     dataset = dataset.map(lambda x: {
         "prompt": [
-            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"], instruction=x["sql_prompt"]).strip()},
-            {"role": "assistant", "content": _reasoning_format(x["generation"])},
+            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"]).strip()},
+            {"role": "user", "content": x["sql_prompt"]},
         ],
         "questions": x["sql_prompt"],
         "contexts": x["sql_context"],
         "answers": extract_sql(x["generation"]),
-    })
+    }, remove_columns=[
+        k for k in dataset.column_names if k not in ["questions", "contexts", "answers", "prompt"]
+    ])
+    return dataset
+
+
+def conversations_supervised_fine_tuning_format(dataset: DatasetDict) -> Dataset | DatasetDict:
+    """
+    Format the conversations for supervised fine-tuning.
+    :param dataset:
+    :return:
+    """
+    dataset = dataset.map(lambda x: {
+        "messages": [
+            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"]).strip()},
+            {"role": "user", "content": x["sql_prompt"]},
+            {"role": "assistant", "content": correct_reasoning_format(x["generation"])},
+        ],
+    }, remove_columns=[
+        k for k in dataset.column_names if k not in ["messages"]
+    ])
     return dataset

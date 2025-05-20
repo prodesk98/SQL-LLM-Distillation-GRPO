@@ -12,11 +12,10 @@ Think about the problem and provide your working out.
 Place it between {REASONING_START} and {REASONING_END}.
 Then, provide your solution between {SOLUTION_START} and {SOLUTION_END}.
 
-### Question:
-{{instruction}}
-
 ### Context:
-{{context}}""".rstrip()
+---
+{{context}}
+---""".rstrip()
 
 
 DISTILLATION_SYSTEM_PROMPT_TEMPLATE = \

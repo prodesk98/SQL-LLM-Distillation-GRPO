@@ -21,7 +21,7 @@ def match_format_exactly(completions: list[list[dict[str, str]]], **kwargs) -> l
     for completion in completions:
         score = 0
         response = completion[0]["content"]
-        if reasoning_match_format.search(response) is not None: score += 3.0
+        if reasoning_match_format.search(response) is not None: score += 1.1
         scores.append(score)
     return scores
 

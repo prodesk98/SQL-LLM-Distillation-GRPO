@@ -34,7 +34,7 @@ def check_sql_reward(
     for pred, context, answer in zip(pred_responses, contexts, answers):
         score = 0
         if pred is None:
-            scores.append(0)
+            scores.append(0) # SQL extraction failed / Not found / Limit Token
             continue
 
         # Check if the SQL query is valid
@@ -43,10 +43,11 @@ def check_sql_reward(
         # Check if the SQL query is similar to the true SQL
         # Correct answer gets 3 points
         if is_valid:
+            score += 1.2
             # Exact match
-            if pred == answer: score += 3.0
+            if pred == answer: score += 1.2
             # Match if spaces are seen
-            elif pred.strip() == answer.strip(): score += 1.5
+            elif pred.strip() == answer.strip(): score += .7
         else: score -= 1.5 # Penalty for incorrect SQL
         scores.append(score)
     return scores

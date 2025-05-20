@@ -135,7 +135,7 @@ if args.command == "train":
 
     from control.trainer_control import TrainerControl
     trainer = TrainerControl(
-        model=args.model,
+        args.model,
         num_train_epochs=args.num_train_epochs,
         dataset_repo_id=args.dataset_repo_id,
         use_vllm=True,
@@ -143,6 +143,7 @@ if args.command == "train":
         publish_repo_id=args.publish_repo_id,
     )
     trainer.train()
+    trainer.publish()
 elif args.command == "distill":
     if args.publish and args.publish_repo_id is None:
         raise ValueError("publish_repo_id must be provided when publish is True")
