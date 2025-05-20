@@ -48,7 +48,7 @@ class TrainerControl:
             gpu_memory_utilization = GPU_MEMORY_UTILIZATION,
         )
         self.num_train_epochs = num_train_epochs
-        self.dataset = load_dataset(dataset_repo_id, split="train")
+        self.dataset = load_dataset(dataset_repo_id, split="train[:1000]")
         self._initialize()
 
     def _initialize(self):
