@@ -1,4 +1,25 @@
 services:
+  train_sm_86:
+    build:
+      context: .
+      dockerfile: dockers/train_sm_86.Dockerfile
+    env_file:
+      - .env
+      - .train
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    volumes:
+      - .cache/huggingface/:/root/.cache/huggingface/
+      - .cache/unsloth_compiled_cache/:/trainer/unsloth_compiled_cache/
+
   train:
     build:
       context: .
