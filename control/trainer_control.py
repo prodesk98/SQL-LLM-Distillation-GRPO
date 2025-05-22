@@ -21,6 +21,7 @@ from config import (
     LORA_RANK, MAX_PROMPT_LENGTH, LEARNING_RATE, ADAM_BETA1, ADAM_BETA2, WEIGHT_DECAY, WARMUP_RATIO, LR_SCHEDULER_TYPE,
     OPTIM, LOGGING_STEPS, PER_DEVICE_TRAIN_BATCH_SIZE, GRADIENT_ACCUMULATION_STEPS, NUM_GENERATIONS,
     MAX_COMPLETION_LENGTH, MAX_STEPS, SAVE_STEPS, MAX_GRAD_NORM, REPORT_TO, OUTPUT_DIR, LORA_DROPOUT, TEMPERATURE,
+    NUM_TRAIN_SFT_EPOCHS, NUM_TRAIN_GRPO_EPOCHS,
 )
 
 
@@ -28,7 +29,6 @@ class TrainerControl:
     def __init__(
         self,
         model_name: str,
-        num_train_epochs: int = -1,
         dataset_repo_id: str = None,
         use_vllm: bool = True,
         load_in_4bit: bool = True,
@@ -47,7 +47,6 @@ class TrainerControl:
             token = HF_TOKEN,
             gpu_memory_utilization = GPU_MEMORY_UTILIZATION,
         )
-        self.num_train_epochs = num_train_epochs
         self.dataset = load_dataset(dataset_repo_id, split="train")
         self._initialize()
 
@@ -77,7 +76,7 @@ class TrainerControl:
                 per_device_train_batch_size=8,
                 gradient_accumulation_steps=1,
                 warmup_steps=5,
-                num_train_epochs=1,
+                num_train_epochs=NUM_TRAIN_SFT_EPOCHS,
                 learning_rate=2e-5,
                 logging_steps=5,
                 optim="adamw_8bit",
@@ -115,7 +114,7 @@ class TrainerControl:
                 num_generations=NUM_GENERATIONS,
                 max_prompt_length=MAX_PROMPT_LENGTH,
                 max_completion_length=MAX_COMPLETION_LENGTH,
-                num_train_epochs=self.num_train_epochs,
+                num_train_epochs=NUM_TRAIN_GRPO_EPOCHS,
                 max_steps=MAX_STEPS,
                 save_steps=SAVE_STEPS,
                 max_grad_norm=MAX_GRAD_NORM,

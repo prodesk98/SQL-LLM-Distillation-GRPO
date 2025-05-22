@@ -27,5 +27,7 @@ from .environment import (
     SAVE_STEPS,
     MAX_GRAD_NORM,
     REPORT_TO,
-    OUTPUT_DIR
+    OUTPUT_DIR,
+    NUM_TRAIN_SFT_EPOCHS,
+    NUM_TRAIN_GRPO_EPOCHS,
 )

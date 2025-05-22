@@ -29,12 +29,6 @@ parser_train.add_argument(
     help="Model name for training. Default is 'unsloth/gemma-3-1b-it'.",
 )
 parser_train.add_argument(
-    "--num-train-epochs",
-    type=int,
-    default=-1,
-    help="Number of training epochs. Default is -1.",
-)
-parser_train.add_argument(
     "--dataset-repo-id",
     type=str,
     default="gretelai/synthetic_text_to_sql",
@@ -136,7 +130,6 @@ if args.command == "train":
     from control.trainer_control import TrainerControl
     trainer = TrainerControl(
         args.model,
-        num_train_epochs=args.num_train_epochs,
         dataset_repo_id=args.dataset_repo_id,
         use_vllm=True,
         load_in_4bit=True,

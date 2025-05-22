@@ -37,4 +37,4 @@ num_generations: 4
 output_dir: "outputs"
 
 num_train_sft_epochs: 3
-num_train_rl_epochs: 3
+num_train_grpo_epochs: 1

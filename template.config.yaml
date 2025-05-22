@@ -20,4 +20,4 @@ max_grad_norm: 1.0
 report_to: "none"
 output_dir: "outputs"
 num_train_sft_epochs: 1
-num_train_rl_epochs: 1
+num_train_grpo_epochs: 1
