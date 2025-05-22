@@ -149,6 +149,7 @@ Feel free to open issues or pull requests if you’d like to contribute, fix bug
 
 * DeepSeekMath: [github.com/deepseek-ai/DeepSeekMath](https://github.com/deepseek-ai/DeepSeekMath)
 * GRPO Docs [https://huggingface.co/docs/trl/main/grpo_trainer](https://huggingface.co/docs/trl/main/grpo_trainer)
+* Supervised Fine-tuning: [https://huggingface.co/docs/trl/main/sft_trainer](https://huggingface.co/docs/trl/main/sft_trainer)
 * Hugging Face: [huggingface.co](https://huggingface.co)
 * Unsloth: [unsloth.ai](https://unsloth.ai)
 * OpenR1: [github.com/huggingface/open-r1](https://github.com/huggingface/open-r1)
