@@ -1,3 +1,3 @@
-from .parser import extract_sql, extract_think
+from .parser import extract_sql, extract_think, extract_schema_tables
 from .validation import validate_sql_query
 from .formatting import conversations_grpo_format, conversations_supervised_fine_tuning_format

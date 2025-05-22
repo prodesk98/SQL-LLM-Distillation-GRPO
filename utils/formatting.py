@@ -4,7 +4,7 @@ from utils.constraints import (
     REASONING_START, REASONING_END,
     SOLUTION_START, SOLUTION_END
 )
-from .parser import extract_sql, extract_think
+from .parser import extract_sql, extract_think, extract_schema_tables
 
 
 def correct_reasoning_format(content: str) -> str:
@@ -26,7 +26,7 @@ def conversations_grpo_format(dataset: DatasetDict) -> Dataset | DatasetDict:
     """
     dataset = dataset.map(lambda x: {
         "prompt": [
-            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"]).strip()},
+            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=extract_schema_tables(x["sql_context"])).strip()},
             {"role": "user", "content": x["sql_prompt"]},
         ],
         "questions": x["sql_prompt"],
@@ -46,7 +46,7 @@ def conversations_supervised_fine_tuning_format(dataset: DatasetDict) -> Dataset
     """
     dataset = dataset.map(lambda x: {
         "messages": [
-            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=x["sql_context"]).strip()},
+            {"role": "system", "content": REASONING_SYSTEM_PROMPT_TEMPLATE.format(context=extract_schema_tables(x["sql_context"])).strip()},
             {"role": "user", "content": x["sql_prompt"]},
             {"role": "assistant", "content": correct_reasoning_format(x["generation"])},
         ],
