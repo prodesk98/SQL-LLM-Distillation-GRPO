@@ -30,11 +30,11 @@ per_device_train_batch_size: 12   # 4090 aguenta bem com 12x2 acumulado
 max_grad_norm: 1.0
 
 # Número de passos (ajustável conforme dataset)
-max_steps: 1000                   # aumente se quiser convergência real
+max_steps: 300                   # aumente se quiser convergência real
 num_generations: 4
 
 # Output
 output_dir: "outputs"
 
-num_train_sft_epochs: 3
+num_train_sft_epochs: 2
 num_train_grpo_epochs: 1

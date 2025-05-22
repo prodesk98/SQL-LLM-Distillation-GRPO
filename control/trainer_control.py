@@ -122,6 +122,7 @@ class TrainerControl:
                 output_dir=OUTPUT_DIR,
                 use_vllm=self.use_vllm,
                 temperature=TEMPERATURE,
+                seed=3407,
             ),
             train_dataset=train_dataset,
         )
