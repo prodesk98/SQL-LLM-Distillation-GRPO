@@ -1,21 +1,40 @@
-base_url: "https://api.openai.com/v1"
+base_url: "https://api.openai.com/v1"  # se for usado para comparação ou geração
+
+# Sequência
 max_seq_length: 2048
 max_prompt_length: 1024
-temperature: 0.9
-tensor_parallel_size: 1
-learning_rate: 0.000005
+
+# Geração (opcional se for só fine-tuning)
+temperature: 0.7  # reduzido para evitar geração caótica
+
+# Treinamento
+tensor_parallel_size: 1  # 4090 é single-GPU
+
+# Otimizador
+learning_rate: 1e-4               # mais alto para convergir em menos passos
 adam_beta1: 0.9
-adam_beta2: 0.999
-weight_decay: 0.1
-warmup_ratio: 0.1
+adam_beta2: 0.95                  # menor para reagir mais rápido a gradientes
+weight_decay: 0.01                # menor regularização, já que temos pouca iteração
+warmup_ratio: 0.03
 lr_scheduler_type: "cosine"
-optim: "paged_adamw_8bit"
-logging_steps: 1
-gradient_accumulation_steps: 4
-per_device_train_batch_size: 8
-num_generations: 4
-max_steps: 500
-save_steps: 250
-max_grad_norm: 1.0
+optim: "paged_adamw_8bit"         # ótimo para 4090 + bitsandbytes
+
+# Logging / Checagens
+logging_steps: 10
+save_steps: 200                   # mais frequente
 report_to: "none"
+
+# Batch e gradiente
+gradient_accumulation_steps: 2    # mais responsivo com batch maior
+per_device_train_batch_size: 12   # 4090 aguenta bem com 12x2 acumulado
+max_grad_norm: 1.0
+
+# Número de passos (ajustável conforme dataset)
+max_steps: 1000                   # aumente se quiser convergência real
+num_generations: 4
+
+# Output
 output_dir: "outputs"
+
+num_train_sft_epochs: 3
+num_train_rl_epochs: 3
